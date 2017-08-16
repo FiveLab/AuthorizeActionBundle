@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="fivelab.authorize_action.user_provider.symfony_user.class">FiveLab\Component\AuthorizeAction\UserProvider\SymfonyTokenStorageUserProvider</parameter>
+        <parameter key="fivelab.authorize_action.verifier.class">FiveLab\Component\AuthorizeAction\Verifier\AuthorizeActionVerifierChain</parameter>
+        <parameter key="fivelab.authorize_action.authorization_checker.class">FiveLab\Component\AuthorizeAction\AuthorizationChecker</parameter>
+        <parameter key="fivelab.authorize_action.listener.authorize_action.class">FiveLab\Bundle\AuthorizeActionBundle\Listener\AuthorizeActionListener</parameter>
+        <parameter key="fivelab.authorize_action.param_converter.authorize_action.class">FiveLab\Bundle\AuthorizeActionBundle\Request\ParamConverter\AuthorizeActionParamConverter</parameter>
+    </parameters>
+
+    <services>
+        <service id="fivelab.authorize_action.user_provider.symfony_user" class="%fivelab.authorize_action.user_provider.symfony_user.class%" public="false">
+            <argument type="service" id="security.token_storage"/>
+        </service>
+
+        <service id="fivelab.authorize_action.verifier" class="%fivelab.authorize_action.verifier.class%" public="false"/>
+
+        <service id="fivelab.authorize_action.authorization_checker" class="%fivelab.authorize_action.authorization_checker.class%">
+            <argument type="service" id="fivelab.authorize_action.verifier"/>
+            <argument type="service" id="fivelab.authorize_action.user_provider"/>
+        </service>
+
+        <service id="fivelab.authorize_action.listener.authorize_action" class="%fivelab.authorize_action.listener.authorize_action.class%">
+            <argument type="service" id="fivelab.authorize_action.authorization_checker"/>
+            <tag name="kernel.event_listener" method="authorizeActionsOnControllerArguments" event="kernel.controller_arguments" priority="-1024"/>
+        </service>
+
+        <service id="fivelab.authorize_action.param_converter.authorize_action" class="%fivelab.authorize_action.param_converter.authorize_action.class%">
+            <argument type="service" id="fivelab.authorize_action.property_info"/>
+            <argument type="service" id="fivelab.authorize_action.denormalizer"/>
+            <tag name="request.param_converter" converter="authorize_action"/>
+        </service>
+    </services>
+</container>
